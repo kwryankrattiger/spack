@@ -114,7 +114,8 @@ class EcpDataVisSdk(BundlePackage, CudaPackage):
     dav_sdk_depends_on('sensei@develop +vtkio +python ~miniapps', when='+sensei',
                        propagate=dict(propagate_to_sensei))
 
-    dav_sdk_depends_on('ascent+shared+mpi+fortran+openmp+python+vtkh+dray',
+    # Disabling fortran support
+    dav_sdk_depends_on('ascent+shared+mpi+openmp+python+vtkh+dray~fortran',
                        when='+ascent')
 
     depends_on('py-cinemasci', when='+cinema')

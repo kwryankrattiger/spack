@@ -100,6 +100,8 @@ class Ascent(CMakePackage, CudaPackage):
     depends_on("conduit+python", when="+python")
     depends_on("conduit+mpi", when="+mpi")
     depends_on("conduit~mpi", when="~mpi")
+    depends_on("conduit+fortran", when="+fortran")
+    depends_on("conduit~fortran", when="~fortran")
 
     #######################
     # Python
