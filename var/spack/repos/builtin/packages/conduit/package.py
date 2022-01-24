@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -344,13 +344,10 @@ class Conduit(CMakePackage):
         cfg.write("# cpp compiler used by spack\n")
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
-        cfg.write("# fortran compiler used by spack\n")
-        if "+fortran" in spec and f_compiler is not None:
+        cfg.write("# Enable fortran support\n")
+        if "+fortran" in spec:
             cfg.write(cmake_cache_entry("ENABLE_FORTRAN", "ON"))
-            cfg.write(cmake_cache_entry("CMAKE_Fortran_COMPILER",
-                                        f_compiler))
         else:
-            cfg.write("# no fortran compiler found\n\n")
             cfg.write(cmake_cache_entry("ENABLE_FORTRAN", "OFF"))
 
         if "+shared" in spec:
@@ -444,7 +441,7 @@ class Conduit(CMakePackage):
             try:
                 cfg.write("# python module install dir\n")
                 cfg.write(cmake_cache_entry("PYTHON_MODULE_INSTALL_PREFIX",
-                          site_packages_dir))
+                          python_platlib))
             except NameError:
                 # spack's  won't exist in a subclass
                 pass
@@ -474,34 +471,7 @@ class Conduit(CMakePackage):
         cfg.write("# MPI Support\n")
 
         if "+mpi" in spec:
-            mpicc_path = spec['mpi'].mpicc
-            mpicxx_path = spec['mpi'].mpicxx
-            mpifc_path = spec['mpi'].mpifc
-            # if we are using compiler wrappers on cray systems
-            # use those for mpi wrappers, b/c  spec['mpi'].mpicxx
-            # etc make return the spack compiler wrappers
-            # which can trip up mpi detection in CMake 3.14
-            if spec['mpi'].mpicc == spack_cc:
-                mpicc_path = c_compiler
-                mpicxx_path = cpp_compiler
-                mpifc_path = f_compiler
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
-            cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
-            cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+fortran" in spec:
-                cfg.write(cmake_cache_entry("MPI_Fortran_COMPILER",
-                                            mpifc_path))
-
-            mpiexe_bin = join_path(spec['mpi'].prefix.bin, 'mpiexec')
-            if os.path.isfile(mpiexe_bin):
-                # starting with cmake 3.10, FindMPI expects MPIEXEC_EXECUTABLE
-                # vs the older versions which expect MPIEXEC
-                if self.spec["cmake"].satisfies('@3.10:'):
-                    cfg.write(cmake_cache_entry("MPIEXEC_EXECUTABLE",
-                                                mpiexe_bin))
-                else:
-                    cfg.write(cmake_cache_entry("MPIEXEC",
-                                                mpiexe_bin))
         else:
             cfg.write(cmake_cache_entry("ENABLE_MPI", "OFF"))
 
