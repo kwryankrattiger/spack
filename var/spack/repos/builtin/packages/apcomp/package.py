@@ -153,30 +153,32 @@ class Apcomp(Package):
         if "+mpi" in spec:
             mpicc_path = spec['mpi'].mpicc
             mpicxx_path = spec['mpi'].mpicxx
-            # if we are using compiler wrappers on cray systems
-            # use those for mpi wrappers, b/c  spec['mpi'].mpicxx
-            # etc make return the spack compiler wrappers
-            # which can trip up mpi detection in CMake 3.14
-            if cpp_compiler == "CC":
-                mpicc_path = "cc"
-                mpicxx_path = "CC"
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
-            cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
-            cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
             if "+blt_find_mpi" in spec:
+                # if we are using find_package(MPI), don't try to re-implement
+                # it here.
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
+                # if we are using compiler wrappers on cray systems
+                # use those for mpi wrappers, b/c  spec['mpi'].mpicxx
+                # etc make return the spack compiler wrappers
+                # which can trip up mpi detection in CMake 3.14
+                if cpp_compiler == "CC":
+                    mpicc_path = "cc"
+                    mpicxx_path = "CC"
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))
-            mpiexe_bin = join_path(spec['mpi'].prefix.bin, 'mpiexec')
-            if os.path.isfile(mpiexe_bin):
-                # starting with cmake 3.10, FindMPI expects MPIEXEC_EXECUTABLE
-                # vs the older versions which expect MPIEXEC
-                if self.spec["cmake"].satisfies('@3.10:'):
-                    cfg.write(cmake_cache_entry("MPIEXEC_EXECUTABLE",
-                                                mpiexe_bin))
-                else:
-                    cfg.write(cmake_cache_entry("MPIEXEC",
-                                                mpiexe_bin))
+                cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
+                cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
+                mpiexe_bin = join_path(spec['mpi'].prefix.bin, 'mpiexec')
+                if os.path.isfile(mpiexe_bin):
+                    # starting with cmake 3.10, FindMPI expects MPIEXEC_EXECUTABLE
+                    # vs the older versions which expect MPIEXEC
+                    if self.spec["cmake"].satisfies('@3.10:'):
+                        cfg.write(cmake_cache_entry("MPIEXEC_EXECUTABLE",
+                                                    mpiexe_bin))
+                    else:
+                        cfg.write(cmake_cache_entry("MPIEXEC",
+                                                    mpiexe_bin))
         else:
             cfg.write(cmake_cache_entry("ENABLE_MPI", "OFF"))
 
