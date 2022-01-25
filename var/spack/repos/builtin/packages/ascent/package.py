@@ -87,7 +87,7 @@ class Ascent(CMakePackage, CudaPackage):
     variant("doc", default=False, description="Build Ascent's documentation")
 
     # variant for BabelFlow runtime
-    variant("babelflow", default=False, description="Build with BabelFlow")
+    variant("babelflow", default=False, description="Build with BabelFlow", when="+mpi")
 
     ##########################################################################
     # package dependencies
@@ -123,8 +123,8 @@ class Ascent(CMakePackage, CudaPackage):
     #######################
     # BabelFlow
     #######################
-    depends_on('babelflow', when='+babelflow+mpi')
-    depends_on('parallelmergetree', when='+babelflow+mpi')
+    depends_on('babelflow', when='+babelflow')
+    depends_on('parallelmergetree', when='+babelflow')
 
     #############################
     # TPLs for Runtime Features
@@ -420,31 +420,7 @@ class Ascent(CMakePackage, CudaPackage):
         cfg.write("# MPI Support\n")
 
         if "+mpi" in spec:
-            mpicc_path = spec['mpi'].mpicc
-            mpicxx_path = spec['mpi'].mpicxx
-            mpifc_path = spec['mpi'].mpifc
-            # if we are using compiler wrappers on cray systems
-            # use those for mpi wrappers, b/c  spec['mpi'].mpicxx
-            # etc make return the spack compiler wrappers
-            # which can trip up mpi detection in CMake 3.14
-            if cpp_compiler == "CC":
-                mpicc_path = "cc"
-                mpicxx_path = "CC"
-                mpifc_path = "ftn"
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
-            cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
-            cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            cfg.write(cmake_cache_entry("MPI_Fortran_COMPILER", mpifc_path))
-            mpiexe_bin = join_path(spec['mpi'].prefix.bin, 'mpiexec')
-            if os.path.isfile(mpiexe_bin):
-                # starting with cmake 3.10, FindMPI expects MPIEXEC_EXECUTABLE
-                # vs the older versions which expect MPIEXEC
-                if self.spec["cmake"].satisfies('@3.10:'):
-                    cfg.write(cmake_cache_entry("MPIEXEC_EXECUTABLE",
-                                                mpiexe_bin))
-                else:
-                    cfg.write(cmake_cache_entry("MPIEXEC",
-                                                mpiexe_bin))
 
             ###################################
             # BABELFLOW (also depends on mpi)
