@@ -185,6 +185,9 @@ class Paraview(CMakePackage, CudaPackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
     depends_on('proj@8.1.0', when='@master')
 
+    generator = 'Ninja'
+    depends_on('ninja', type='build')
+
     patch('stl-reader-pv440.patch', when='@4.4.0')
 
     # Broken gcc-detection - improved in 5.1.0, redundant later
