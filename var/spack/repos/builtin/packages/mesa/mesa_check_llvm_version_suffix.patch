@@ -1,21 +1,3 @@
-diff --git a/meson.build b/meson.build
-index 07ef92dbff8..958c441600e 100644
---- a/meson.build
-+++ b/meson.build
-@@ -1703,6 +1703,13 @@ if with_llvm
-   pre_args += '-DMESA_LLVM_VERSION_STRING="@0@"'.format(dep_llvm.version())
-   pre_args += '-DLLVM_IS_SHARED=@0@'.format(_shared_llvm.to_int())
- 
-+  # If LLVM is pre-release then define the suffix
-+  # This is redundant with: https://reviews.llvm.org/D115818
-+  llvm_version_prerelease = dep_llvm.version().to_lower().contains('git')
-+  if llvm_version_prerelease
-+    pre_args += '-DLLVM_VERSION_SUFFIX'
-+  endif
-+
-   if draw_with_llvm
-     pre_args += '-DDRAW_LLVM_AVAILABLE'
-   elif with_swrast_vk
 diff --git a/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp b/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp
 index be288ab02e2..378381b16ff 100644
 --- a/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp
