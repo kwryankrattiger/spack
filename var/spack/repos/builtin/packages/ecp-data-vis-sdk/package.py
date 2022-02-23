@@ -138,7 +138,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage):
 
     dav_sdk_depends_on('visit', when='+visit')
 
-    dav_sdk_depends_on('vtk-m+shared+mpi+openmp+rendering',
+    dav_sdk_depends_on('vtk-m+shared+mpi+openmp~rendering',
                        when='+vtkm',
                        propagate=['cuda'] + cuda_arch_variants)
 
