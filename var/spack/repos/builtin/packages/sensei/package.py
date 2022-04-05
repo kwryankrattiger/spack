@@ -36,7 +36,11 @@ class Sensei(CMakePackage):
     variant('libsim', default=False, description='Build with VisIt-Libsim support')
     variant('vtkio', default=False, description='Enable adaptors to write to VTK XML format')
     variant('adios2', default=False, description='Enable ADIOS2 adaptors and endpoints')
-    variant('hdf5', default=False, description='Enables HDF5 adaptors and endpoints')
+    # hdf5 variant is available only for SENSEI 3
+    variant('hdf5',
+            default=False,
+            description='Enables HDF5 adaptors and endpoints',
+            when='@3:')
     variant('vtkm', default=False, description='Enable VTKm adaptors and endpoints')
     variant('python', default=False, description='Enable Python bindings')
     variant('miniapps', default=False, description='Enable the parallel 3D and oscillators miniapps')
@@ -44,21 +48,41 @@ class Sensei(CMakePackage):
     # All SENSEI versions up to 2.1.1 support only Python 2, so in this case
     # Paraview 6 cannot be used since it requires Python 3. Starting from
     # version 3, SENSEI supports Python 3.
-    depends_on("paraview@5.5.0:5.5.2+mpi+hdf5", when="@:2.1.1 +catalyst")
-    depends_on("paraview@5.5.0:5.5.2+python+mpi+hdf5", when="@:2.1.1 +catalyst+python")
-    depends_on("paraview@5.6:5.7+mpi+hdf5", when="@3:3.2.1 +catalyst")
-    depends_on("paraview@5.6:5.7+python3+mpi+hdf5", when="@3:3.2.1 +catalyst+python")
     depends_on("paraview+mpi+hdf5", when="+catalyst")
-    depends_on("paraview+python3+mpi+hdf5", when="+catalyst+python")
+    depends_on("paraview+python3", when="@3: +catalyst+python")
+    depends_on("paraview+python", when="@:2.1.1 +catalyst+python")
+    depends_on("paraview@5.5.0:5.5.2", when="@:2.1.1 +catalyst")
+    depends_on("paraview@5.6:5.7", when="@3:3.2.1 +catalyst")
+    depends_on("paraview@5.7:5.8", when="@3.2.2: +catalyst")
+
+    # VTK, pre-3.2.2 SENSEI needs an external VTK, 3.2.2: uses SVTK
+    depends_on("vtk", when="@:3.2.1 ~libsim~catalyst")
+    depends_on("vtk+python", when="@:3.2.1 ~libsim~catalyst+python")
+
+    # VTK-IO, IO modules are not included in SVTK
+    depends_on('vtk', when='+vtkio~libsim~catalyst')
+
+    # VTK-m
+    # Sensei has a VTK dependency prior to 3.2.2, either directly or indirectly,
+    # VTKm will also always be available via VTK so there's no scenario to
+    # have a directly dependency on VTKm prior to 3.2.2.
+    depends_on('vtk-m@1.7:', when='@3.2.2: +vtkm~libsim~catalyst~vtkio')
+
+    # Visit
     depends_on("visit~gui~python", when="+libsim")
     depends_on("vtk@8.1.0:8.1.2", when="+libsim")
-    depends_on("vtk", when="~libsim ~catalyst")
-    depends_on("vtk+python", when="~libsim ~catalyst+python")
+
+    # ADIOS2
     depends_on("adios2", when="+adios2")
+
+    # Ascent
     depends_on("ascent", when="+ascent")
 
+    # HDF5
     # VTK needs +hl and currently spack cannot resolve +hl and ~hl
     depends_on("hdf5+hl", when="+hdf5")
+
+    # Python
     # SENSEI 3 supports Python 3, earlier versions upport only Python 2
     depends_on("python@:2.7.16", when="@:2.1.1 +python", type=('build', 'run'))
     depends_on("python@3:", when="@3: +python", type=('build', 'run'))
@@ -69,14 +93,8 @@ class Sensei(CMakePackage):
     depends_on('cmake@3.6:', when="@3:", type='build')
     depends_on('pugixml')
 
-    # Since sensei always has a VTK dependency, either directly or indirectly,
-    # VTKm will also always be available via VTK so there's no scenario to
-    # have a directl dependency on VTK,
-
     # Can have either LibSim or Catalyst, but not both
     conflicts('+libsim', when='+catalyst')
-    # hdf5 variant is available only for SENSEI 3
-    conflicts('+hdf5', when='@:2.1.1')
 
     def cmake_args(self):
         spec = self.spec
