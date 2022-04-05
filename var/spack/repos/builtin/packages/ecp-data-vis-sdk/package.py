@@ -20,24 +20,39 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     # Variants
     ############################################################
 
+    variant('all', default=False, description="Enable all verified SDK packages")
+
     # I/O
     variant('adios2', default=False, description="Enable ADIOS2")
+    conflicts('+all', '~adios2')
     variant('darshan', default=False, description="Enable Darshan")
+    conflicts('+all', '~darshan')
     variant('faodel', default=False, description="Enable FAODEL")
+    conflicts('+all', '~faodel')
     variant('hdf5', default=False, description="Enable HDF5")
+    conflicts('+all', '~hdf5')
     variant('pnetcdf', default=False, description="Enable PNetCDF")
+    conflicts('+all', '~pnetcdf')
     variant('unifyfs', default=False, description="Enable UnifyFS")
+    conflicts('+all', '~unifyfs')
     variant('veloc', default=False, description="Enable VeloC")
+    conflicts('+all', '~veloc')
 
     # Vis
     variant('ascent', default=False, description="Enable Ascent")
+    conflicts('+all', '~ascent')
     variant('paraview', default=False, description="Enable ParaView")
+    conflicts('+all', '~paraview')
     variant('sz', default=False, description="Enable SZ")
+    conflicts('+all', '~sz')
     variant('vtkm', default=False, description="Enable VTK-m")
+    conflicts('+all', '~vtkm')
     variant('zfp', default=False, description="Enable ZFP")
+    conflicts('+all', '~zfp')
 
     # Cinema
     variant('cinema', default=False, description="Enable Cinema")
+    conflicts('+all', '~cinema')
 
     # Outstanding build issues
     variant('sensei', default=False, description="Enable Sensei")
