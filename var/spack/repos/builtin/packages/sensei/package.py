@@ -6,7 +6,7 @@
 from spack import *
 
 
-class Sensei(CMakePackage):
+class Sensei(CMakePackage, CudaPackage):
     """SENSEI is a platform for scalable in-situ analysis and visualization.
     Its design motto is 'Write once, run everywhere', this means that once
     the application is instrumented with SENSEI it can use existing and
@@ -56,8 +56,8 @@ class Sensei(CMakePackage):
     depends_on("paraview@5.7:5.8", when="@3.2.2: +catalyst")
 
     # VTK, pre-3.2.2 SENSEI needs an external VTK, 3.2.2: uses SVTK
-    depends_on("vtk", when="@:3.2.1 ~libsim~catalyst")
-    depends_on("vtk+python", when="@:3.2.1 ~libsim~catalyst+python")
+    depends_on("vtk", when="@:3.2.2 ~libsim~catalyst")
+    depends_on("vtk+python", when="@:3.2.2 ~libsim~catalyst+python")
 
     # VTK-IO, IO modules are not included in SVTK
     depends_on('vtk', when='+vtkio~libsim~catalyst')
@@ -95,6 +95,7 @@ class Sensei(CMakePackage):
 
     # Can have either LibSim or Catalyst, but not both
     conflicts('+libsim', when='+catalyst')
+    conflicts('+cuda', when='@:3.2.1')
 
     def cmake_args(self):
         spec = self.spec
@@ -107,6 +108,7 @@ class Sensei(CMakePackage):
             self.define_from_variant('ENABLE_ASCENT', 'ascent'),
             self.define_from_variant('ENABLE_VTKM', 'vtkm'),
             self.define_from_variant('ENABLE_CATALYST', 'catalyst'),
+            self.define_from_variant('ENABLE_CUDA', 'cuda'),
             self.define_from_variant('ENABLE_LIBSIM', 'libsim'),
             self.define_from_variant('ENABLE_VTK_IO', 'vtkio'),
             self.define_from_variant('ENABLE_PYTHON', 'python'),
