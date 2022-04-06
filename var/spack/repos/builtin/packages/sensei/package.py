@@ -66,7 +66,7 @@ class Sensei(CMakePackage, CudaPackage):
     # Sensei has a VTK dependency prior to 3.2.2, either directly or indirectly,
     # VTKm will also always be available via VTK so there's no scenario to
     # have a directly dependency on VTKm prior to 3.2.2.
-    depends_on('vtk-m@1.7:', when='@3.2.2: +vtkm~libsim~catalyst~vtkio')
+    depends_on('vtk-m', when='@develop +vtkm~libsim~catalyst~vtkio')
 
     # Visit
     depends_on("visit~gui~python", when="+libsim")
@@ -100,7 +100,6 @@ class Sensei(CMakePackage, CudaPackage):
     def cmake_args(self):
         spec = self.spec
 
-        # -Ox flags are set by default in CMake based on the build type
         args = [
             self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
             self.define('SENSEI_USE_EXTERNAL_pugixml', True),
@@ -108,7 +107,6 @@ class Sensei(CMakePackage, CudaPackage):
             self.define_from_variant('ENABLE_ASCENT', 'ascent'),
             self.define_from_variant('ENABLE_VTKM', 'vtkm'),
             self.define_from_variant('ENABLE_CATALYST', 'catalyst'),
-            self.define_from_variant('ENABLE_CUDA', 'cuda'),
             self.define_from_variant('ENABLE_LIBSIM', 'libsim'),
             self.define_from_variant('ENABLE_VTK_IO', 'vtkio'),
             self.define_from_variant('ENABLE_PYTHON', 'python'),
@@ -117,6 +115,24 @@ class Sensei(CMakePackage, CudaPackage):
             self.define_from_variant('ENABLE_PARALLEL3D', 'miniapps'),
             self.define_from_variant('ENABLE_OSCILLATORS', 'miniapps')
         ]
+
+        if '@3.2.2:' in spec:
+            args.append(self.define_from_variant('ENABLE_CUDA', 'cuda'))
+
+        # -Ox flags are set by default in CMake based on the build type
+        if '+vtkm' in spec:
+            if '+catalyst' in spec:
+                # Get VTK-m from ParaView installation
+                args.extend([
+                    self.define('VTKm_DIR',spec['paraview'].prefix.lib + "/cmake"])
+            elif '+libsim' in spec or '+vtkio' in spec:
+                # Get VTK-m from VTK installation
+                args.extend([
+                    self.define('VTKm_DIR',spec['vtk'].prefix.lib + "/cmake"])
+            else:
+                # Get VTK-m from VTK-m installation
+                args.extend([
+                    self.define('VTKm_DIR',spec['vtk-m'].prefix.lib + "/cmake"])
 
         if '+libsim' in spec:
             args.append(
