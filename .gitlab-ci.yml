@@ -1,0 +1,22 @@
+.pr-job:
+  only:
+  - /^github\/pr[\d]+_.*$/
+  variables:
+    PIPELINE_TYPE: "pr"
+
+.protected-job:
+  only:
+  - /^github\/develop$/
+  - /^github\/releases\/v.*/
+  variables:
+    PIPELINE_TYPE: "protected"
+
+.any-job:
+  script:
+    - echo $PIPELINE_TYPE
+
+job1:
+  extends: [ ".pr-job", ".any-job" ]
+
+job2:
+  extends: [ ".protected-job", ".any-job" ]
