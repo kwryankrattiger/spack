@@ -8,6 +8,7 @@
   only:
   - /^github\/develop$/
   - /^github\/releases\/v.*/
+  - /^v*/
   variables:
     PIPELINE_TYPE: "protected"
 
