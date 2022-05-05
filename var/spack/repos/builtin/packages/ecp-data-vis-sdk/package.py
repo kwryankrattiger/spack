@@ -44,6 +44,19 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     conflicts('+sensei')
     variant('visit', default=False, description="Enable VisIt")
     conflicts('+visit')
+    sdk_dist = {
+        'insitu': ['ascent', 'paraview'],
+        'rendering': ['paraview', 'vtkm'],
+        'e4s': ['ascent', 'adios2', 'cinema', 'darshan', 'faodel', 'hdf5', 'paraview', 'pnetcdf', 'sz', 'unifyfs', 'veloc', 'vtkm', 'zfp'],
+        'all': ['ascent', 'adios2', 'cinema', 'darshan', 'faodel', 'hdf5', 'paraview', 'pnetcdf', 'sz', 'unifyfs', 'veloc', 'vtkm', 'zfp'],
+        'custom': []
+        }
+    variant('dist', default='custom', values=sdk_dist.keys(), description='SDK packages distributions.')
+    for g, l in sdk_dist.items():
+        for v in l:
+            conflicts('dist=%s' % g, when='~%s' % v)
+
+    depends_on('paraview build_edition=catalyst_rendering', when='dist=insitu')
 
     # Wrapper around depends_on to propagate dependency variants
     def dav_sdk_depends_on(spec, when=None, propagate=None):
