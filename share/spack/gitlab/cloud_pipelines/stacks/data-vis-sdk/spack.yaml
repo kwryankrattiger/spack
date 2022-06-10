@@ -20,26 +20,27 @@ spack:
     all:
       target: [x86_64]
 
-  # Currently disabled: sensei
   specs:
-    - matrix:
-      # ParaView and VisIt flavors: +gui +glx, ~gui +glx, ~gui +osmesa
-      - [ ^paraview+qt ^visit+gui, ^paraview~qt~osmesa ^visit~gui~osmesa, ^paraview~qt+osmesa ^visit~gui+osmesa ]
-      - - ecp-data-vis-sdk ~cuda ~rocm ~sensei
-            +adios2
-            +ascent
-            +cinema
-            +darshan
-            +faodel
-            +hdf5
-            +paraview
-            +pnetcdf
-            +sz
-            +unifyfs
-            +veloc
-            +visit
-            +vtkm
-            +zfp
+  - matrix:
+    - [ ^paraview+qt ^visit+gui, ^paraview~qt~osmesa ^visit~gui~osmesa, ^paraview~qt+osmesa ^visit~gui+osmesa ]
+    - - ecp-data-vis-sdk ~cuda ~rocm
+          +adios2
+          +cinema
+          +darshan
+          +faodel
+          +hdf5
+          +pnetcdf
+          +sz
+          +unifyfs
+          +veloc
+          +vtkm
+          +zfp
+    - - +ascent+paraview+visit
+      # Sensei can only build with one of ascent, paraview, or visit
+      # at a time.
+      - +sensei+ascent
+      - +sensei+paraview
+      - +sensei+visit
 
   mirrors: { "mirror": "s3://spack-binaries/develop/data-vis-sdk" }
 
