@@ -138,6 +138,10 @@ class NetcdfC(AutotoolsPackage):
         if not os.path.exists(self.configure_abs_path):
             Executable('./bootstrap')()
 
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        if '+parallel-netcdf' in self.spec:
+            env.append_flags('LDFLAGS', '-lpnetcdf')
+
     def configure_args(self):
         cflags = []
         cppflags = []
