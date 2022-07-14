@@ -190,6 +190,9 @@ class Warpx(CMakePackage):
         with when('+openpmd'):
             args.append('-DWarpX_openpmd_internal=OFF')
 
+        if '+sensei' in spec:
+            args.append(self.define('SENSEI_DIR', os.path.join(spec['sensei'].prefix.lib, 'cmake')))
+
         return args
 
     @property
