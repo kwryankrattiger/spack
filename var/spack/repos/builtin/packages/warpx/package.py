@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-
+import os
 
 class Warpx(CMakePackage):
     """WarpX is an advanced electromagnetic Particle-In-Cell code. It supports
