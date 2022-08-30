@@ -93,7 +93,6 @@ class LlvmAmdgpu(CMakePackage):
             "standalone spack package."
         ),
     )
-    variant("openmp", default=False, description="Enable OpenMP")
     variant(
         "llvm_dylib",
         default=False,
@@ -117,11 +116,6 @@ class LlvmAmdgpu(CMakePackage):
     depends_on("z3", type="link")
     depends_on("zlib", type="link")
     depends_on("ncurses+termlib", type="link")
-
-    # openmp dependencies
-    depends_on("perl-data-dumper", type=("build"), when="+openmp")
-    depends_on("hwloc", when="+openmp")
-    depends_on("elf", type="link", when="+openmp")
 
     # Will likely only be fixed in LLVM 12 upstream
     patch("fix-system-zlib-ncurses.patch", when="@3.5.0:3.8.0")
@@ -199,9 +193,6 @@ class LlvmAmdgpu(CMakePackage):
             args.append(self.define("LIBCXXABI_ENABLE_SHARED", "OFF"))
             args.append(self.define("LIBCXXABI_ENABLE_STATIC", "ON"))
             args.append(self.define("LIBCXXABI_INSTALL_STATIC_LIBRARY", "OFF"))
-
-        if "+openmp" in self.spec:
-            llvm_projects.append("openmp")
 
         args.extend([self.define("LLVM_ENABLE_PROJECTS", ";".join(llvm_projects))])
 

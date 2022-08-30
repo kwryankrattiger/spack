@@ -157,7 +157,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     dav_sdk_depends_on("visit+mpi+python+silo", when="+visit", propagate=["hdf5", "adios2"])
 
     dav_sdk_depends_on(
-        "vtk-m@1.7:+shared+mpi+rendering",
+        "vtk-m@1.7:+shared+openmp+mpi+rendering",
         when="+vtkm",
         propagate=["cuda", "rocm"] + cuda_arch_variants + amdgpu_target_variants,
     )
