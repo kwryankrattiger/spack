@@ -9,7 +9,7 @@ import os
 from spack.package import *
 
 
-class Paraview(CMakePackage, CudaPackage):
+class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     """ParaView is an open-source, multi-platform data analysis and
     visualization application. This package includes the Catalyst
     in-situ library for versions 5.7 and greater, otherwise use the
@@ -27,6 +27,7 @@ class Paraview(CMakePackage, CudaPackage):
     tags = ["e4s"]
 
     version("master", branch="master", submodules=True)
+    version("5.11.0-rc1", tag="v5.11.0-RC1", submodules=True)
     version(
         "5.10.1",
         sha256="520e3cdfba4f8592be477314c2f6c37ec73fb1d5b25ac30bdbd1c5214758b9c2",
@@ -130,6 +131,27 @@ class Paraview(CMakePackage, CudaPackage):
     for _arch in range(10, 14):
         conflicts("cuda_arch=%d" % _arch, when="+cuda", msg="ParaView requires cuda_arch >= 20")
 
+    # The rocm variant is only valid for 5.11.0+ (since VTK-m rocm support begins with 1.8, and it is only used with the
+    # use_vtkm variant.  See the vtk-m for more information on Kokkos.
+    conflicts("+rocm", when="@:5.10.99")
+    conflicts("+rocm", when="+cuda")
+    # TODO: add conflicts for +rocm use_vtkm=off *or* unselected from kit,
+    # the second part is harder.
+    # conflicts("+rocm", when="use_vtkm=default build_edition=<thing that no vtkm>")
+    conflicts("+rocm", when="use_vtkm=off")
+
+    # TODO: is there a way to import this from the VTK-m package?
+    # VTK-m uses the Kokkos HIP backend.
+    # If Kokkos provides multiple backends, the HIP backend may or
+    # may not be used for VTK-m depending on the default selected by Kokkos
+    depends_on("kokkos +rocm", when="+rocm")
+    # Propagate AMD GPU target to kokkos for +rocm
+    for amdgpu_value in ROCmPackage.amdgpu_targets:
+        depends_on(
+            "kokkos amdgpu_target=%s" % amdgpu_value,
+            when="+rocm amdgpu_target=%s" % amdgpu_value,
+        )
+
     depends_on("cmake@3.3:", type="build")
 
     depends_on("ninja", type="build")
@@ -220,6 +242,10 @@ class Paraview(CMakePackage, CudaPackage):
     # ParaView depends on nlohmann-json due to changes in MR
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8550
     depends_on("nlohmann-json", when="@master")
+    depends_on("nlohmann-json", when="@5.11.0-rc1")
+    # TODO: these were required when building VTK via use_vtkm=on
+    depends_on("sqlite@3.0:", when="@5.11.0-rc1")
+    depends_on("proj", when="@5.11.0-rc1")
 
     # ParaView depends on proj@8.1.0 due to changes in MR
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
@@ -252,6 +278,9 @@ class Paraview(CMakePackage, CudaPackage):
     # Patch for paraview 5.9.0%xl_r
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/7591
     patch("xlc-compilation-pv590.patch", when="@5.9.0%xl_r")
+
+    # TODO: testing paraview hip support PR, remove this
+    patch("rocm-hip-kokkos-511.patch", when="+rocm")
 
     @property
     def generator(self):
@@ -570,5 +599,25 @@ class Paraview(CMakePackage, CudaPackage):
 
         if "+advanced_debug" in spec:
             cmake_args.append("-DVTK_DEBUG_LEAKS:BOOL=ON")
+
+        if "+rocm" in spec:
+            # Paraview has a VTK submodule, which has a VTK-m submodule.
+            cmake_args.extend([
+                # CMake HIP flags.
+                self.define("CMAKE_HIP_ARCHITECTURES",
+                            self.spec.variants["amdgpu_target"].value),
+                self.define("PARAVIEW_USE_HIP", True),  # TODO: apply to all
+                # TODO: CMake >= 3.21 required for hip
+                # Needed to coerce KokkosConfigCommon.cmake into finding it.
+                # self.define("CMAKE_HIP_COMPILER", self.spec["hip"].prefix.bin.hipcc),
+                # self.define("Kokkos_CXX_COMPILER", self.spec["hip"].prefix.bin.hipcc),
+                # options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc)),
+                self.define("Kokkos_CXX_COMPILER", join_path(self.spec["llvm-amdgpu"].prefix.bin, "clang++")),
+                # VTK HIP flags.
+                # self.define("VTK_USE_HIP", True),
+                # VTK-m HIP flags.
+                # self.define("VTKm_NO_DEPRECATED_VIRTUAL", True),
+                # self.define("VTKm_ENABLE_KOKKOS", True),
+            ])
 
         return cmake_args
