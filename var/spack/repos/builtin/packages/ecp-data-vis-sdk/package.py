@@ -145,6 +145,14 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     )
     # ParaView needs @5.11: in order to use cuda and be compatible with other
     # SDK packages.
+    depends_on("paraview +rocm", when="+paraview +rocm ^paraview@5.11:")
+    for amdgpu_target in amdgpu_target_variants:
+        depends_on(
+            "paraview {0}".format(amdgpu_target),
+            when="+paraview {0} ^paraview@5.11:".format(amdgpu_target),
+        )
+    depends_on("paraview ~rocm", when="+paraview ~rocm")
+
     depends_on("paraview +cuda", when="+paraview +cuda ^paraview@5.11:")
     for cuda_arch in cuda_arch_variants:
         depends_on(
@@ -161,8 +169,6 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
         when="+vtkm",
         propagate=["cuda", "rocm"] + cuda_arch_variants + amdgpu_target_variants,
     )
-    depends_on("vtk-m+openmp", when="~rocm+vtkm")
-    depends_on("vtk-m~openmp", when="+rocm+vtkm")
 
     # +python is currently broken in sz
     # dav_sdk_depends_on('sz+shared+python+random_access',
