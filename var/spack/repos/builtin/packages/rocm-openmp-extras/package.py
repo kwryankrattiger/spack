@@ -178,6 +178,7 @@ class RocmOpenmpExtras(Package):
         depends_on("hsakmt-roct@" + ver, when="@" + ver)
         depends_on("comgr@" + ver, when="@" + ver)
         depends_on("hsa-rocr-dev@" + ver, when="@" + ver)
+        depends_on("llvm-amdgpu@" + ver, when="@" + ver)
 
         # tag changed to 'rocm-' in 4.0.0
         if ver == "3.9.0" or ver == "3.10.0":
@@ -228,9 +229,15 @@ class RocmOpenmpExtras(Package):
     # patch("flang-extern-alarm.patch", when="@5")
 
     def setup_run_environment(self, env):
-        devlibs_prefix = self.spec["llvm-amdgpu"].prefix
-        openmp_extras_prefix = self.spec["rocm-openmp-extras"].prefix
-        llvm_prefix = self.spec["llvm-amdgpu"].prefix
+        if "llvm-amdgpu" in self.spec:
+            devlibs_prefix = self.spec["llvm-amdgpu"].prefix
+            openmp_extras_prefix = self.spec["rocm-openmp-extras"].prefix
+            llvm_prefix = self.spec["llvm-amdgpu"].prefix
+        else:
+            devlibs_prefix = self.prefix
+            openmp_extras_prefix = self.prefix
+            llvm_prefix = self.prefix
+
         env.set("AOMP", "{0}".format(llvm_prefix))
         env.set("HIP_DEVICE_LIB_PATH", "{0}/amdgcn/bitcode".format(devlibs_prefix))
         env.prepend_path("CPATH", "{0}/include".format(openmp_extras_prefix))
