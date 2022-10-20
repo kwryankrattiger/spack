@@ -5,6 +5,19 @@
 
 from spack.package import *
 
+def require_mpi_thread_multiple(env=None):
+    if env:
+        # Configure this for MPICH and the many MPICH forks
+        env.set("MPICH_MAX_THREAD_SAFETY", "multiple")
+    else:
+        # Don't allow building with MPIs that don't support
+        # MPI_THREAD_MULTIPLE
+        msg="HDF5 VOL Async requires MPI with MPI_THREAD_MULTIPLE support"
+        conflicts("openmpi ~thread_multiple", msg=msg)
+        conflicts("mvapich2 threads=single", msg=msg)
+        conflicts("mvapich2 threads=funneled", msg=msg)
+        conflicts("mvapich2 threads=serialized", msg=msg)
+
 
 class Hdf5VolAsync(CMakePackage):
     """This package enables asynchronous IO in HDF5."""
@@ -26,11 +39,13 @@ class Hdf5VolAsync(CMakePackage):
     depends_on("argobots@main")
     depends_on("hdf5@1.13: +mpi +threadsafe")
 
+    require_mpi_thread_multiple()
+
     def setup_run_environment(self, env):
         env.set("HDF5_PLUGIN_PATH", self.spec.prefix.lib)
         vol_connector = "async under_vol=0;under_info=[]"
         env.set("HDF5_VOL_CONNECTOR", vol_connector)
-        env.set("MPICH_MAX_THREAD_SAFETY", "multiple")
+        require_mpi_thread_multiple(env)
 
     def cmake_args(self):
         """Populate cmake arguments for HDF5 VOL."""
