@@ -207,6 +207,10 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
             if "+kokkos" in spec and "+rocm" in spec and spec.satisfies("^kokkos@4:"):
                 options.append(f"-DCMAKE_CXX_COMPILER:BOOL={spec['hip'].prefix.bin.hipcc}")
 
+            # mpi support
+            if "+mpi" in spec:
+                options.append(self.define("CMAKE_HIP_FLAGS", "-I/opt/cray/pe/mpich/8.1.16/ofi/crayclang/10.0/include -L/opt/cray/pe/mpich/8.1.16/ofi/crayclang/10.0/lib -lmpi -L/opt/cray/pe/mpich/8.1.16/gtl/lib -lmpi_gtl_hsa"))
+
             # Support for relocatable code
             if "~shared" in spec and "+fpic" in spec:
                 options.append("-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON")
