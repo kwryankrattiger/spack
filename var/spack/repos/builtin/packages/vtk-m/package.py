@@ -192,7 +192,16 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
             # mpi support
             if "+mpi" in spec:
-                options.append(self.define("CMAKE_HIP_FLAGS", "-I/opt/cray/pe/mpich/8.1.16/ofi/crayclang/10.0/include -L/opt/cray/pe/mpich/8.1.16/ofi/crayclang/10.0/lib -lmpi -L/opt/cray/pe/mpich/8.1.16/gtl/lib -lmpi_gtl_hsa"))
+                if "+rocm" in spec:
+                    # Special handling for crusher
+                    if "CRAY_MPICH_ROOTDIR" in os.environ:
+                        cray_mpich_root = os.environ.get("CRAY_MPICH_ROOTDIR")
+                        options.append(self.define("CMAKE_HIP_FLAGS",
+                            "-I{0} -L{1} -lmpi -L{2}/gtl/lib -lmpi_gtl_hsa".format(
+                                spec["mpi"].prefix.include,
+                                spec["mpi"].prefix.lib,
+                                cray_mpich_root,
+                        )))
 
             # Support for relocatable code
             if "~shared" in spec and "+fpic" in spec:
