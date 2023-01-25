@@ -510,6 +510,12 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
         cmake_args.append("-DPARAVIEW_BUILD_SHARED_LIBS:BOOL=%s" % variant_bool("+shared"))
 
+        # Experimental: VTK-m overrides for VTK filters
+        if spec.satisfies("@master") and spec.variants["use_vtkm"].value == "on":
+            cmake_args.append(
+                "-DVTK_ENABLE_VTKM_OVERRIDES:BOOL=%s" % spec.variants["use_vtkm"].value.upper()
+            )
+
         # VTK-m added to ParaView in 5.3.0 and up
         if spec.satisfies("@5.3.0:") and spec.variants["use_vtkm"].value != "default":
             cmake_args.append(
