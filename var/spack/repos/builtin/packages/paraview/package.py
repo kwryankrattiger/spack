@@ -61,6 +61,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     variant("fortran", default=False, description="Enable Fortran support")
     variant("mpi", default=True, description="Enable MPI support")
     variant("osmesa", default=False, description="Enable OSMesa support")
+    variant("egl", default=False, description="Enable EGL support")
     variant("qt", default=False, description="Enable Qt (gui) support")
     variant("opengl2", default=True, description="Enable OpenGL2 backend")
     variant("examples", default=False, description="Build examples")
@@ -178,9 +179,10 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("gl@1.2:", when="~opengl2")
     depends_on("glew")
     depends_on("osmesa", when="+osmesa")
+    depends_on("egl", when="+egl")
     for p in ["linux", "cray"]:
-        depends_on("glx", when="~osmesa platform={}".format(p))
-        depends_on("libxt", when="~osmesa platform={}".format(p))
+        depends_on("glx", when="~osmesa ~egl platform={}".format(p))
+        depends_on("libxt", when="~osmesa ~egl platform={}".format(p))
     conflicts("+qt", when="+osmesa")
 
     depends_on("bzip2")

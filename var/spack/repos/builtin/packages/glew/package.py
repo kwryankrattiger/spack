@@ -22,20 +22,26 @@ class Glew(CMakePackage):
     variant(
         "gl",
         default="glx" if sys.platform.startswith("linux") else "other",
-        values=("glx", "osmesa", "other"),
+        values=("glx", "egl", "osmesa", "other"),
         multi=False,
         description="The OpenGL provider to use",
     )
     conflicts("osmesa", when="gl=glx")
+    conflicts("osmesa", when="gl=egl")
     conflicts("osmesa", when="gl=other")
     conflicts("glx", when="gl=osmesa")
+    conflicts("glx", when="gl=egl")
     conflicts("glx", when="gl=other")
+    conflicts("egl", when="gl=glx")
+    conflicts("egl", when="gl=osmesa")
+    conflicts("egl", when="gl=other")
 
     depends_on("gl")
     depends_on("osmesa", when="gl=osmesa")
     depends_on("glx", when="gl=glx")
     depends_on("libx11", when="gl=glx")
     depends_on("xproto", when="gl=glx")
+    depends_on("egl", when="gl=egl")
 
     # glu is already forcibly disabled in the CMakeLists.txt.  This prevents
     # it from showing up in the .pc file
@@ -46,7 +52,6 @@ class Glew(CMakePackage):
         args = [
             self.define("BUILD_UTILS", True),
             self.define("GLEW_REGAL", False),
-            self.define("GLEW_EGL", False),
             self.define("OpenGL_GL_PREFERENCE", "LEGACY"),
             self.define("OPENGL_INCLUDE_DIR", spec["gl"].headers.directories[0]),
             self.define("OPENGL_gl_LIBRARY", spec["gl"].libs[0]),
@@ -56,6 +61,7 @@ class Glew(CMakePackage):
             self.define("OPENGL_glu_LIBRARY", "IGNORE"),
             self.define("GLEW_OSMESA", "gl=osmesa" in spec),
             self.define("GLEW_X11", "gl=glx" in spec),
+            self.define("GLEW_EGL", "gl=egl" in spec),
             self.define("CMAKE_DISABLE_FIND_PACKAGE_X11", "gl=glx" not in spec),
         ]
 

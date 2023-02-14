@@ -95,9 +95,7 @@ class Mesa(MesonPackage):
     is_linux = sys.platform.startswith("linux")
     variant("glx", default=is_linux, description="Enable the GLX frontend.", when="+opengl")
 
-    # TODO: effectively deal with EGL.  The implications of this have not been
-    # worked through yet
-    # variant('egl', default=False, description="Enable the EGL frontend.")
+    variant('egl', default=False, description="Enable the EGL frontend.")
 
     # TODO: Effectively deal with hardware drivers
     # The implication of this is enabling DRI, among other things, and
@@ -110,8 +108,14 @@ class Mesa(MesonPackage):
     # Provides
     provides("libglx", when="+glx")
 
-    # provides('egl@1.5', when='+egl')
+    provides("libegl@1.4", when="+egl")
+
     provides("libosmesa", when="+osmesa")
+
+    provides("gl@4.5", when="+opengl")
+
+    provides("gles@1", when="+opengles")
+    provides("gles@2", when="+opengles")
 
     # Variant dependencies
     with when("+llvm"):
@@ -131,8 +135,7 @@ class Mesa(MesonPackage):
     conflicts("%gcc@10.1.0", msg="GCC 10.1.0 has a bug")
 
     # Require at least 1 front-end
-    # TODO: Add egl to this conflict once made available
-    conflicts("~osmesa ~glx")
+    conflicts("~osmesa ~glx ~egl")
 
     # Require at least 1 back-end
     # TODO: Add vulkan to this conflict once made available
