@@ -270,7 +270,7 @@ def generate_module_index(root, modules, overwrite=False):
             entries = yaml_content["module_index"]
 
     for m in modules:
-        entry = {"path": m.layout.filename, "use_name": m.layout.use_name}
+        entry = {"path": m.layout.filename, "use_name": m.layout.use_name[0]}
         entries[m.spec.dag_hash()] = entry
     index = {"module_index": entries}
     llnl.util.filesystem.mkdirp(root)
@@ -395,12 +395,9 @@ def get_module(module_type, spec, get_full_path, module_set_name="default", requ
         if get_full_path:
             return [module.path]
         else:
-            return [module.use_name]
+            return module.use_name
     elif spec.external_modules:
         if get_full_path:
-            # FIXME: this is possible in Lmod with 
-            #       module --redirect --location show <module>
-            # Unsure about environment modules.
             err_msg = "Cannot retrieve full path to an external module"
             raise NotImplementedError(err_msg)
         else:
@@ -427,7 +424,7 @@ def get_module(module_type, spec, get_full_path, module_set_name="default", requ
         if get_full_path:
             return [writer.layout.filename]
         else:
-            return [writer.layout.use_name]
+            return writer.layout.use_name
 
 
 class BaseConfiguration(object):
@@ -626,7 +623,7 @@ class BaseFileLayout(object):
         non-hierarchical layouts.
         """
         if self.spec.external_modules:
-            return self.spec.external_modules[0]
+            return self.spec.external_modules
         projection = proj.get_projection(self.conf.projections, self.spec)
         if not projection:
             projection = self.conf.default_projections["all"]
@@ -637,15 +634,15 @@ class BaseFileLayout(object):
         name = os.path.join(*parts)
         # Add optional suffixes based on constraints
         path_elements = [name] + self.conf.suffixes
-        return "-".join(path_elements)
+        return ["-".join(path_elements)]
 
     @property
     def filename(self):
         """Name of the module file for the current spec."""
         # Just the name of the file
-        filename = self.use_name
+        filename = self.use_name[0]
         if self.extension:
-            filename = "{0}.{1}".format(self.use_name, self.extension)
+            filename = "{0}.{1}".format(self.use_name[0], self.extension)
         # Architecture sub-folder
         arch_folder_conf = spack.config.get("modules:%s:arch_folder" % self.conf.name, True)
         if arch_folder_conf:
@@ -804,7 +801,7 @@ class BaseContext(tengine.Context):
         m = self.conf.module
         name = self.conf.name
         explicit = self.conf.explicit
-        return [m.make_layout(x, name, explicit).use_name for x in getattr(self.conf, what)]
+        return [use_name for x in getattr(self.conf, what) for use_name in m.make_layout(x, name, explicit).use_name]
 
     @tengine.context_property
     def verbose(self):
