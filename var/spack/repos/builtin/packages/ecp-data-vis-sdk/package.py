@@ -107,7 +107,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
         propagate=["cuda", "hdf5", "sz", "zfp", "fortran"] + cuda_arch_variants,
     )
 
-    dav_sdk_depends_on("darshan-runtime+mpi", when="+darshan", propagate=["hdf5"])
+    dav_sdk_depends_on("darshan-runtime+mpi", when="+darshan", propagate={"hdf5": "hdf5", "pnetcdf": "parallel-netcdf"})
     dav_sdk_depends_on("darshan-util", when="+darshan")
 
     dav_sdk_depends_on("faodel+shared+mpi network=libfabric", when="+faodel", propagate=["hdf5"])
@@ -127,6 +127,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     conflicts("~hdf5", when="^hdf5-vfd-gds@1.0.2:")
 
     dav_sdk_depends_on("parallel-netcdf+shared", when="+pnetcdf", propagate=["fortran"])
+    conflicts("netcdf-c~parallel-netcdf", when="+pnetcdf")
 
     dav_sdk_depends_on("unifyfs", when="+unifyfs ")
 
@@ -162,8 +163,9 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
         when="+paraview",
         propagate=["adios2", "cuda", "hdf5", "rocm"] + amdgpu_target_variants + cuda_arch_variants,
     )
-    dav_sdk_depends_on("libcatalyst@2:+mpi", when="+paraview")
     conflicts("paraview@master", when="+paraview")
+
+    dav_sdk_depends_on("libcatalyst@2:+mpi", when="+paraview")
 
     dav_sdk_depends_on("visit+mpi+python+silo", when="+visit", propagate=["hdf5", "adios2"])
 
