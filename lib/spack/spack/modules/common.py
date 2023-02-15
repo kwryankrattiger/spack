@@ -801,7 +801,11 @@ class BaseContext(tengine.Context):
         m = self.conf.module
         name = self.conf.name
         explicit = self.conf.explicit
-        return [use_name for x in getattr(self.conf, what) for use_name in m.make_layout(x, name, explicit).use_name]
+        return [
+            use_name
+            for x in getattr(self.conf, what)
+            for use_name in m.make_layout(x, name, explicit).use_name
+        ]
 
     @tengine.context_property
     def verbose(self):
