@@ -63,6 +63,8 @@ class MochiMargo(AutotoolsPackage):
     depends_on("mercury@1.0.0:", type=("build", "link", "run"), when="@:0.5.1")
     depends_on("mercury@2.0.0:", type=("build", "link", "run"), when="@0.5.2:")
 
+    patch("mochi-margo-pthread.patch", when="@0.9:0.9")
+
     def autoreconf(self, spec, prefix):
         sh = which("sh")
         sh("./prepare.sh")
