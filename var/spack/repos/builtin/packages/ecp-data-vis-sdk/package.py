@@ -168,15 +168,15 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     dav_sdk_depends_on("visit+mpi+python+silo", when="+visit", propagate=["hdf5", "adios2"])
 
     dav_sdk_depends_on(
-        "vtk-m@1.7:+shared+mpi+rendering+openmp",
+        "vtk-m@1.7:+shared+mpi+rendering",
         when="+vtkm",
         propagate=["cuda", "rocm"] + cuda_arch_variants + amdgpu_target_variants,
     )
     # TODO: When Ascent is updated to use VTK-m >= 1.8 move examples to
     # the main spec.
     depends_on("vtk-m+examples", when="+vtkm ^vtk-m@1.8:")
-    # depends_on("vtk-m+openmp", when="~rocm+vtkm")
-    # depends_on("vtk-m~openmp", when="+rocm+vtkm")
+    depends_on("vtk-m+openmp", when="~rocm+vtkm")
+    depends_on("vtk-m~openmp", when="+rocm+vtkm")
 
     # +python is currently broken in sz
     # dav_sdk_depends_on('sz+shared+python+random_access',
