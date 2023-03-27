@@ -26,7 +26,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     maintainers = ["danlipsa", "vicentebolea", "kwryankrattiger"]
     tags = ["e4s"]
 
-    version("master", branch="master", submodules=True)
+    version("master", commit="90f22f5f66b7c4f528efcff4df40e10d7ba89ac2", submodules=True)
     version(
         "5.11.0",
         sha256="9a0b8fe8b1a2cdfd0ace9a87fa87e0ec21ee0f6f0bcb1fdde050f4f585a25165",
@@ -259,7 +259,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     # Fix IOADIOS2 module to work with kits
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8653
-    patch("vtk-adios2-module-no-kit.patch", when="@5.8:")
+    # patch("vtk-adios2-module-no-kit.patch", when="@5.8:")
 
     # Patch for paraview 5.9.0%xl_r
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/7591
