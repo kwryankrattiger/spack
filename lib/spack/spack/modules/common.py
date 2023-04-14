@@ -398,10 +398,10 @@ def get_modules(module_type, spec, get_full_path, module_set_name="default", req
         if get_full_path:
             return [module.path]
         else:
-            return module.use_names
+            return [module.use_name]
     elif spec.external_modules:
-        writer = spack.modules.module_types[module_type](spec, module_set_name)
-        if writer.conf.excluded:
+        conf = spack.modules.module_config_types[module_type](spec, module_set_name)
+        if conf.excluded:
             if required:
                 tty.debug("The module configuration has excluded {0}: " "omitting it".format(spec))
             else:
@@ -434,7 +434,7 @@ def get_modules(module_type, spec, get_full_path, module_set_name="default", req
         if get_full_path:
             return [writer.layout.filename]
         else:
-            return writer.layout.use_names
+            return [writer.layout.use_name]
 
 
 class BaseConfiguration(object):
@@ -812,11 +812,16 @@ class BaseContext(tengine.Context):
         m = self.conf.module
         name = self.conf.name
         explicit = self.conf.explicit
-        return [
-            use_name
-            for x in getattr(self.conf, what)
-            for use_name in m.make_layout(x, name, explicit).use_name
-        ]
+
+        external_modules = []
+        local_modules = []
+        for spec in getattr(self.conf, what):
+            if spec.external_modules:
+                external_modules.extend(spec.external_modules)
+            else:
+                local_modules.append(m.make_layout(spec, name, explicit).use_name)
+
+        return external_modules + local_modules
 
     @tengine.context_property
     def verbose(self):
