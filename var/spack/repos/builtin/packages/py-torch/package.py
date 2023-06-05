@@ -24,6 +24,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     import_modules = ["torch", "torch.autograd", "torch.nn", "torch.utils"]
 
     version("master", branch="master", submodules=True)
+    version("2.0.1", tag="v2.0.1", submodules=True)
     version("2.0.0", tag="v2.0.0", submodules=True)
     version("1.13.1", tag="v1.13.1", submodules=True)
     version("1.13.0", tag="v1.13.0", submodules=True)
@@ -606,3 +607,10 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     def install_test(self):
         with working_dir("test"):
             python("run_test.py")
+
+    @property
+    def cmake_prefix_paths(self):
+        cmake_prefix_paths = [
+            join_path(self.prefix, self.spec["python"].package.platlib, "torch", "share", "cmake")
+        ]
+        return cmake_prefix_paths
