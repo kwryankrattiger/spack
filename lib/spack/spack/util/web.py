@@ -14,6 +14,7 @@ import re
 import shutil
 import ssl
 import sys
+from tempfile import TemporaryFile
 import traceback
 import urllib.parse
 from html.parser import HTMLParser
@@ -106,29 +107,41 @@ def read_from_url(url, accept_content_type=None):
         url = urllib.parse.urlparse(url)
 
     # Timeout in seconds for web requests
-    request = Request(url.geturl(), headers={"User-Agent": SPACK_USER_AGENT})
+    if url.scheme == "s3":
+        remote_path = url.path
+        while remote_path.startswith("/"):
+            remote_path = remote_path[1:]
 
-    try:
-        response = urlopen(request)
-    except URLError as err:
-        raise SpackWebError("Download failed: {}".format(str(err)))
-
-    if accept_content_type:
+        s3 = s3_util.get_s3_session(url, method="push")
         try:
-            content_type = get_header(response.headers, "Content-type")
-            reject_content_type = not content_type.startswith(accept_content_type)
-        except KeyError:
-            content_type = None
-            reject_content_type = True
+            response = s3.get_object(Bucket=url.netloc, Key=remote_path)
+        except:
+            raise SpackWebError("Download failed: S3 Object not found")
 
-        if reject_content_type:
-            msg = "ignoring page {}".format(url.geturl())
-            if content_type:
-                msg += " with content type {}".format(content_type)
-            tty.debug(msg)
-            return None, None, None
+        return url, response, response.get("Body")
+    else:
+        request = Request(url.geturl(), headers={"User-Agent": SPACK_USER_AGENT})
+        try:
+            response = urlopen(request)
+        except URLError as err:
+            raise SpackWebError("Download failed: {}".format(str(err)))
 
-    return response.geturl(), response.headers, response
+        if accept_content_type:
+            try:
+                content_type = get_header(response.headers, "Content-type")
+                reject_content_type = not content_type.startswith(accept_content_type)
+            except KeyError:
+                content_type = None
+                reject_content_type = True
+
+            if reject_content_type:
+                msg = "ignoring page {}".format(url.geturl())
+                if content_type:
+                    msg += " with content type {}".format(content_type)
+                tty.debug(msg)
+                return None, None, None
+
+        return response.geturl(), response.headers, response
 
 
 def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=None):

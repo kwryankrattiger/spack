@@ -190,6 +190,8 @@ class Mirror(object):
                 return self._push_url.get("access_pair", None)
             return self._fetch_url.get("access_pair", None)
         else:
+            if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY"):
+                return (os.environ.get("AWS_ACCESS_KEY_ID"), os.environ.get("AWS_SECRET_ACCESS_KEY"))
             return None
 
     def set_access_pair(self, url_type, connection_tuple):

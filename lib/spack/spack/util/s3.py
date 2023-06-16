@@ -61,6 +61,7 @@ def get_s3_session(url, method="fetch"):
     # Otherwise, create it.
     s3_connection, s3_client_args = get_mirror_s3_connection_info(mirror, method)
 
+    print("S3 Connection: ", s3_connection)
     session = Session(**s3_connection)
     # if no access credentials provided above, then access anonymously
     if not session.get_credentials():
