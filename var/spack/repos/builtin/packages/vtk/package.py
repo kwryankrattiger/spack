@@ -103,19 +103,13 @@ class Vtk(CMakePackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8653
     patch("vtk-adios2-module-no-kit.patch", when="@9:9.0.3")
 
-    # Python 3.8 compatibility for VTK 8.2
-    # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6269
-    # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6275
-    patch("vtk82_python38.patch", when="@8.2.1a")
-
     # Fix link error in exodusII
     patch("vtk-8.2-exodusII-gcc11.patch", when="@8.2.1a")
 
     # Python 3.8 compatibility for VTK 8.2
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6269
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6275
-    patch("vtk_82_python38a.patch", when="@8.2.1a")
-    patch("vtk_82_python38b.patch", when="@8.2.1a")
+    patch("vtk82_python38.patch", when="@8.2.1a")
 
     # The use of the OpenGL2 backend requires at least OpenGL Core Profile
     # version 3.2 or higher.
