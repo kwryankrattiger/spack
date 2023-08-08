@@ -4,9 +4,6 @@ spack:
   - $spack/share/spack/gitlab/cloud_pipelines/configs/linux
   - $spack/share/spack/gitlab/cloud_pipelines/configs/linux/x86_64_v3
 
-  config:
-    install_tree:
-      root: /asdf/asdf/asdf
   view: false
   packages:
     cmake:
