@@ -258,7 +258,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # ParaView depends on proj@8.1.0 due to changes in MR
     # v8.1.0 is required for VTK::GeoVis
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
-    depends_on("proj@8.1.0", when="@5.11:")
+    depends_on("proj@4:8.1.0", when="@5.11:")
 
     patch("stl-reader-pv440.patch", when="@4.4.0")
 
