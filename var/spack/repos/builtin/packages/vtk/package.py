@@ -111,6 +111,9 @@ class Vtk(CMakePackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6275
     patch("vtk82_python38.patch", when="@8.2.1a")
 
+    # Fix link error in exodusII
+    patch("vtk-8.2-exodusII-gcc11.patch", when="@8.2.1a")
+
     # The use of the OpenGL2 backend requires at least OpenGL Core Profile
     # version 3.2 or higher.
     depends_on("gl@3.2:", when="+opengl2")
