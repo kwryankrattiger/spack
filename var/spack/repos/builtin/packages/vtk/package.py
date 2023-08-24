@@ -65,6 +65,9 @@ class Vtk(CMakePackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/9690
     patch("xdmf2-hdf51.13.2.patch", when="@9:9.2 +xdmf")
 
+    # Patch for exodusII for GCC 11 and older versions of VTK
+    patch("vtk-8.2-exodusII-gcc11.patch", when="@8")
+
     # We cannot build with both osmesa and qt in spack
     conflicts("+osmesa", when="+qt")
 
@@ -154,13 +157,15 @@ class Vtk(CMakePackage):
     depends_on("utf8cpp", when="@9:")
     depends_on("gl2ps", when="@8.1:")
     depends_on("gl2ps@1.4.1:", when="@9:")
-    depends_on("proj@4", when="@8.2")
-    depends_on("proj@4:7", when="@9:")
+    depends_on("proj@8:", when="@9:")
     depends_on("cgns@4.1.1:+mpi", when="@9.1: +mpi")
     depends_on("cgns@4.1.1:~mpi", when="@9.1: ~mpi")
     depends_on("seacas@2021-05-12:+mpi", when="@9.1: +mpi")
     depends_on("seacas@2021-05-12:~mpi", when="@9.1: ~mpi")
     depends_on("nlohmann-json", when="@9.2:")
+
+    # Allow using newer LibPROJ in VTK 8.2
+    # patch("vtk-libproj-5.patch", when="@8.2:8.2 ^proj@5:")
 
     # For finding Fujitsu-MPI wrapper commands
     patch("find_fujitsu_mpi.patch", when="@:8.2.0%fj")
@@ -211,6 +216,10 @@ class Vtk(CMakePackage):
             # Allow downstream codes (e.g. VisIt) to override VTK's classes
             "-DVTK_ALL_NEW_OBJECT_FACTORY:BOOL=ON",
         ]
+
+        if spec.satisfies("@8.2.1a"):
+            cmake_args.append("-DVTK_USE_SYSTEM_LIBPROJ:BOOL=OFF")
+            cmake_args.append("-DVTK_USE_SYSTEM_PUGIXML:BOOL=OFF")
 
         # Disable wrappers for other languages.
         cmake_args.append("-DVTK_WRAP_JAVA=OFF")
