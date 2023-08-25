@@ -267,12 +267,14 @@ def _id(thing):
 
 @llnl.util.lang.key_ordering
 class AspFunction(AspObject):
+    __slots__ = ["name", "args"]
+
     def __init__(self, name, args=None):
         self.name = name
         self.args = () if args is None else tuple(args)
 
     def _cmp_key(self):
-        return (self.name, self.args)
+        return self.name, self.args
 
     def __call__(self, *args):
         """Return a new instance of this function with added arguments.
@@ -731,7 +733,9 @@ class PyclingoDriver:
         """
         symbol = head.symbol() if hasattr(head, "symbol") else head
 
-        self.out.write("%s.\n" % str(symbol))
+        # This is commented out to avoid evaluating str(symbol) when we have no stream
+        if not isinstance(self.out, llnl.util.lang.Devnull):
+            self.out.write(f"{str(symbol)}.\n")
 
         atom = self.backend.add_atom(symbol)
 
@@ -804,6 +808,8 @@ class PyclingoDriver:
         # Load the file itself
         self.control.load(os.path.join(parent_dir, "concretize.lp"))
         self.control.load(os.path.join(parent_dir, "heuristic.lp"))
+        if spack.config.CONFIG.get("concretizer:duplicates:strategy", "none") != "none":
+            self.control.load(os.path.join(parent_dir, "heuristic_separate.lp"))
         self.control.load(os.path.join(parent_dir, "os_compatibility.lp"))
         self.control.load(os.path.join(parent_dir, "display.lp"))
         if not setup.concretize_everything:
@@ -1363,26 +1369,29 @@ class SpackSolverSetup:
         self.gen.fact(fn.condition_reason(condition_id, msg))
 
         cache = self._trigger_cache[named_cond.name]
-        if named_cond not in cache:
+
+        named_cond_key = str(named_cond)
+        if named_cond_key not in cache:
             trigger_id = next(self._trigger_id_counter)
             requirements = self.spec_clauses(named_cond, body=True, required_from=name)
-            cache[named_cond] = (trigger_id, requirements)
-        trigger_id, requirements = cache[named_cond]
+            cache[named_cond_key] = (trigger_id, requirements)
+        trigger_id, requirements = cache[named_cond_key]
         self.gen.fact(fn.pkg_fact(named_cond.name, fn.condition_trigger(condition_id, trigger_id)))
 
         if not imposed_spec:
             return condition_id
 
         cache = self._effect_cache[named_cond.name]
-        if imposed_spec not in cache:
+        imposed_spec_key = str(imposed_spec)
+        if imposed_spec_key not in cache:
             effect_id = next(self._effect_id_counter)
             requirements = self.spec_clauses(imposed_spec, body=False, required_from=name)
             if not node:
                 requirements = list(
                     filter(lambda x: x.args[0] not in ("node", "virtual_node"), requirements)
                 )
-            cache[imposed_spec] = (effect_id, requirements)
-        effect_id, requirements = cache[imposed_spec]
+            cache[imposed_spec_key] = (effect_id, requirements)
+        effect_id, requirements = cache[imposed_spec_key]
         self.gen.fact(fn.pkg_fact(named_cond.name, fn.condition_effect(condition_id, effect_id)))
         return condition_id
 
@@ -1820,37 +1829,11 @@ class SpackSolverSetup:
                         # skip build dependencies of already-installed specs
                         if concrete_build_deps or dtype != "build":
                             clauses.append(fn.attr("depends_on", spec.name, dep.name, dtype))
-
-                            # TODO: We have to look up info from package.py here, but we'd
-                            # TODO: like to avoid this entirely. We should not need to look
-                            # TODO: up potentially wrong info if we have virtual edge info.
-                            try:
-                                try:
-                                    pkg = dep.package
-
-                                except spack.repo.UnknownNamespaceError:
-                                    # Try to look up the package of the same name and use its
-                                    # providers. This is as good as we can do without edge info.
-                                    pkg_class = spack.repo.PATH.get_pkg_class(dep.name)
-                                    spec = spack.spec.Spec(f"{dep.name}@{dep.version}")
-                                    pkg = pkg_class(spec)
-
-                                virtuals = pkg.virtuals_provided
-
-                            except spack.repo.UnknownPackageError:
-                                # Skip virtual node constriants for renamed/deleted packages,
-                                # so their binaries can still be installed.
-                                # NOTE: with current specs (which lack edge attributes) this
-                                # can allow concretizations with two providers, but it's unlikely.
-                                continue
-
-                            # Don't concretize with two providers of the same virtual.
-                            # See above for exception for unknown packages.
-                            # TODO: we will eventually record provider information on edges,
-                            # TODO: which avoids the need for the package lookup above.
-                            for virtual in virtuals:
-                                clauses.append(fn.attr("virtual_node", virtual.name))
-                                clauses.append(fn.provider(dep.name, virtual.name))
+                            for virtual_name in dspec.virtuals:
+                                clauses.append(
+                                    fn.attr("virtual_on_edge", spec.name, dep.name, virtual_name)
+                                )
+                                clauses.append(fn.attr("virtual_node", virtual_name))
 
                     # imposing hash constraints for all but pure build deps of
                     # already-installed concrete specs.
@@ -2953,6 +2936,7 @@ class Solver:
           setup_only (bool): if True, stop after setup and don't solve (default False).
         """
         # Check upfront that the variants are admissible
+        specs = [s.lookup_hash() for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self._reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
@@ -2976,6 +2960,7 @@ class Solver:
             stats (bool): print internal statistics if set to True
             tests (bool): add test dependencies to the solve
         """
+        specs = [s.lookup_hash() for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self._reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
