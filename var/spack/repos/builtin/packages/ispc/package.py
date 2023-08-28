@@ -67,8 +67,14 @@ class Ispc(CMakePackage):
         sha256="d3ccf547d3ba59779fd375e10417a436318f2200d160febb9f830a26f0daefdc",
     )
 
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/ispc/ispc/pull/2638.patch",
+        when="@1.18:1.20",
+        sha256="38705be3779ad9752b52e2f677a7dcaf3362fd5231bed1dc0cbeef404a0e17b5",
+    )
+
     def setup_build_environment(self, env):
-        if self.spec.satisfies("@1.18.0:"):
+        if False and self.spec.satisfies("@1.18.0:"):
             env.append_flags("LDFLAGS", "-lcurses")
             env.append_flags("LDFLAGS", "-ltinfo")
             env.append_flags("LDFLAGS", "-lz")
