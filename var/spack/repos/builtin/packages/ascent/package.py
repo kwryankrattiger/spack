@@ -224,9 +224,9 @@ class Ascent(CMakePackage, CudaPackage):
         depends_on("vtk-m+cuda", when="@0.9.0: +cuda")
         depends_on("vtk-m+fpic", when="@0.8.0:")
         depends_on("vtk-m~shared+fpic", when="@0.8.0: ~shared")
-        # Ascent defaults to C++11
-        depends_on("kokkos cxxstd=11", when="+vtkh ^vtk-m +kokkos")
-        depends_on("kokkos@3.7.02", when="@0.9.3: +vtkh ^vtk-m +kokkos")
+        # Ascent defaults to C++11, some GPU features require 14
+        depends_on("kokkos cxxstd=14", when="+^vtk-m +kokkos")
+        depends_on("kokkos@3.7.02", when="@0.9.3: ^vtk-m +kokkos")
 
         #######################
         # VTK-h
@@ -617,6 +617,9 @@ class Ascent(CMakePackage, CudaPackage):
                 cfg.write(cmake_cache_entry("CMAKE_CUDA_HOST_COMPILER", env["SPACK_CXX"]))
             else:
                 cfg.write(cmake_cache_entry("VTKm_ENABLE_CUDA", "OFF"))
+
+            if "^kokkos" in spec:
+               cfg.write(cmake_cache_entry("CMAKE_CXX_STANDARD", "14")) 
 
         else:
             if self.spec.satisfies("@0.8.1:"):
