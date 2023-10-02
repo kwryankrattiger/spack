@@ -1,0 +1,126 @@
+stages: [ "generate", "build",  "copy"]
+
+variables:
+  SPACK_CI_ROOT: "${CI_PROJECT_DIR}/share/spack/gitlab/validation"
+  SPACK_CI_STACK_NAME: "test1"
+  SPACK_BUILDCACHE_PREFIX: "spack-binaries"
+  SPACK_BUILDCACHE_PREFIX_PRS: "spack-binaries-prs"
+
+# Default is to setup spack and using spacks ubuntu image
+default:
+
+.generate-common:
+  stage: generate
+  before_script:
+    - uname -a || true
+    - grep -E 'vendor|model name' /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
+    - nproc || true
+    - . "./share/spack/setup-env.sh"
+    - spack --version
+  script:
+    - spack env activate
+      --without-view
+      ${SPACK_CI_ROOT}/stack/${SPACK_CI_STACK_NAME}
+    - export SPACK_CI_CONFIG_ROOT="${SPACK_ROOT}/share/spack/gitlab/cloud_pipelines/configs"
+    - spack ci generate
+      --check-index-only
+      --buildcache-destination "${SPACK_BUILDCACHE_DESTINATION}"
+      --artifacts-root "${CI_PROJECT_DIR}/jobs_scratch_dir"
+      --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
+  after_script:
+    - cat /proc/loadavg || true
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}/jobs_scratch_dir"
+  variables:
+    KUBERNETES_CPU_REQUEST: 4000m
+    KUBERNETES_MEMORY_REQUEST: 16G
+    # avoid moving targets like branches and tags
+    SPACK_CONCRETIZER_REQUIRE_CHECKSUM: 1
+    SPACK_BACKTRACE: 1
+  interruptible: true
+  image: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
+  timeout: 60 minutes
+  retry:
+    max: 2
+    when:
+    - always
+
+
+.pr-job:
+  tags: ["public"]
+  variables:
+    SPACK_PIPELINE_TYPE: "spack_pull_request"
+    SPACK_BUILDCACHE_DESTINATION: "${SPACK_BUILDCACHE_PREFIX_PRS}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}"
+    SPACK_PRUNE_UNTOUCHED: "True"
+    SPACK_PRUNE_UNTOUCHED_DEPENDENT_DEPTH: "1"
+    AWS_ACCESS_KEY_ID: ${PR_MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${PR_MIRRORS_AWS_SECRET_ACCESS_KEY}
+    OIDC_TOKEN_AUDIENCE: "pr_binary_mirror"
+
+.protected-job:
+  tags: ["public"]
+  variables:
+    SPACK_PIPELINE_TYPE: "spack_protected_branch"
+    SPACK_COPY_BUILDCACHE: "${SPACK_BUILDCACHE_PREFIX}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}"
+    SPACK_PRUNE_UNTOUCHED: "False"
+    SPACK_PRUNE_UP_TO_DATE: "False"
+    SPACK_REQUIRE_SIGNING: "True"
+    AWS_ACCESS_KEY_ID: ${PROTECTED_MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${PROTECTED_MIRRORS_AWS_SECRET_ACCESS_KEY}
+    OIDC_TOKEN_AUDIENCE: "protected_binary_mirror"
+
+.copy-job:
+  tags: ["public"]
+  variables:
+    SPACK_PIPELINE_TYPE: "spack_copy_only"
+    SPACK_SOURCE_MIRROR: "${SPACK_BUILDCACHE_PREFIX_PRS}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}"
+    SPACK_COPY_BUILDCACHE: "s3://spack-binaries/${CI_COMMIT_REF_NAME}"
+    AWS_ACCESS_KEY_ID: ${PROTECTED_MIRRORS_AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${PROTECTED_MIRRORS_AWS_SECRET_ACCESS_KEY}
+    OIDC_TOKEN_AUDIENCE: "protected_binary_mirror"
+
+# PR CI pipeline
+spack_pull_request:generate:
+  extends: [ ".generate-common", ".pr-job" ]
+
+spack_pull_request:build:
+  extends: [ ".pr-job" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: spack_pull_request:generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: spack_pull_request:generate
+
+# Protected CI pipelines
+spack_protected_branch:generate:
+  extends: [ ".generate-common", ".protected-job" ]
+
+spack_protected_branch:build:
+  extends: [ ".protected-job" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: spack_protected_branch:generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: spack_protected_branch:generate
+
+# Copy Only pipelines
+spack_protected_branch_copy:generate:
+  extends: [ ".generate-common", ".copy-job" ]
+
+spack_protected_branch_copy:build:
+  extends: [ ".generate-common", ".copy-job" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: spack_protected_branch:generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: spack_protected_branch:generate
