@@ -118,9 +118,6 @@ class Vtk(CMakePackage):
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6275
     patch("vtk82_python38.patch", when="@8.2.1a")
 
-    # Fix link error in exodusII
-    patch("vtk-8.2-exodusII-gcc11.patch", when="@8.2.1a")
-
     # Python 3.8 compatibility for VTK 8.2
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6269
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/6275
