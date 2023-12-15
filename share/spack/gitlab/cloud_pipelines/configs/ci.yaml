@@ -9,6 +9,9 @@ ci:
   broken-specs-url: "https://dummy.io" # s3://spack-binaries/broken-specs"
 
   pipeline-gen:
+  - any-job-remove:
+      id_tokens::
+        GITLAB_OIDC_TOKEN: disable_oidc
   - build-job:
       before_script-:
       - - spack list --count  # ensure that spack's cache is populated
