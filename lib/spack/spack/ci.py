@@ -1230,7 +1230,6 @@ def generate_gitlab_ci_yaml(
             # TODO: Remove this condition in Spack 0.23
             buildcache_source = os.environ.get("SPACK_SOURCE_MIRROR", None)
         sync_job["variables"]["SPACK_BUILDCACHE_SOURCE"] = buildcache_source
-        sync_job["dependencies"] = []
 
         output_object["copy"] = sync_job
         job_id += 1
