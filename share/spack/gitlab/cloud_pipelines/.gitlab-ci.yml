@@ -319,11 +319,11 @@ protected-publish:
   variables:
     SPACK_CI_STACK_NAME: e4s
 
-e4s-generate:
+.e4s-generate:
   extends: [ ".e4s", ".generate-x86_64"]
   image: ghcr.io/spack/ubuntu20.04-runner-amd64-gcc-11.4:2023.08.01
 
-e4s-build:
+.e4s-build:
   extends: [ ".e4s", ".build" ]
   trigger:
     include:
@@ -342,11 +342,11 @@ e4s-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-neoverse_v1
 
-e4s-neoverse_v1-generate:
+.e4s-neoverse_v1-generate:
   extends: [ ".e4s-neoverse_v1", ".generate-neoverse_v1" ]
   image: ghcr.io/spack/ubuntu20.04-runner-arm64-gcc-11.4:2023.08.01
 
-e4s-neoverse_v1-build:
+.e4s-neoverse_v1-build:
   extends: [ ".e4s-neoverse_v1", ".build" ]
   trigger:
     include:
@@ -365,11 +365,11 @@ e4s-neoverse_v1-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-rocm-external
 
-e4s-rocm-external-generate:
+.e4s-rocm-external-generate:
   extends: [ ".e4s-rocm-external", ".generate-x86_64"]
   image: ghcr.io/spack/ubuntu20.04-runner-amd64-gcc-11.4-rocm5.4.3:2023.08.01
 
-e4s-rocm-external-build:
+.e4s-rocm-external-build:
   extends: [ ".e4s-rocm-external", ".build" ]
   trigger:
     include:
@@ -411,11 +411,11 @@ e4s-rocm-external-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-oneapi
 
-e4s-oneapi-generate:
+.e4s-oneapi-generate:
   extends: [ ".e4s-oneapi", ".generate-x86_64"]
   image: ghcr.io/spack/ubuntu20.04-runner-amd64-oneapi-2023.2.1:2023.08.01
 
-e4s-oneapi-build:
+.e4s-oneapi-build:
   extends: [ ".e4s-oneapi", ".build" ]
   trigger:
     include:
@@ -438,10 +438,10 @@ e4s-oneapi-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-power
 
-e4s-power-generate:
+.e4s-power-generate:
   extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
 
-e4s-power-build:
+.e4s-power-build:
   extends: [ ".e4s-power", ".build" ]
   trigger:
     include:
@@ -482,10 +482,10 @@ build_systems-build:
   variables:
     SPACK_CI_STACK_NAME: developer-tools
 
-developer-tools-generate:
+.developer-tools-generate:
   extends: [ ".developer-tools", ".generate-x86_64"]
 
-developer-tools-build:
+.developer-tools-build:
   extends: [ ".developer-tools", ".build" ]
   trigger:
     include:
@@ -504,10 +504,10 @@ developer-tools-build:
   variables:
     SPACK_CI_STACK_NAME: radiuss
 
-radiuss-generate:
+.radiuss-generate:
   extends: [ ".radiuss", ".generate-x86_64" ]
 
-radiuss-build:
+.radiuss-build:
   extends: [ ".radiuss", ".build" ]
   trigger:
     include:
@@ -536,10 +536,10 @@ radiuss-build:
   variables:
     SPACK_CI_STACK_NAME: radiuss-aws
 
-radiuss-aws-generate:
+.radiuss-aws-generate:
   extends: [ ".radiuss-aws", ".generate-x86_64", ".radiuss-aws-overrides", ".tags-x86_64_v4" ]
 
-radiuss-aws-build:
+.radiuss-aws-build:
   extends: [ ".radiuss-aws", ".build" ]
   trigger:
     include:
@@ -558,10 +558,10 @@ radiuss-aws-build:
   variables:
     SPACK_CI_STACK_NAME: radiuss-aws-aarch64
 
-radiuss-aws-aarch64-generate:
+.radiuss-aws-aarch64-generate:
   extends: [ ".radiuss-aws-aarch64", ".generate-aarch64", ".radiuss-aws-overrides" ]
 
-radiuss-aws-aarch64-build:
+.radiuss-aws-aarch64-build:
   extends: [ ".radiuss-aws-aarch64", ".build" ]
   trigger:
     include:
@@ -610,10 +610,10 @@ radiuss-aws-aarch64-build:
   variables:
     SPACK_CI_STACK_NAME: aws-isc
 
-aws-isc-generate:
+.aws-isc-generate:
   extends: [ ".aws-isc", ".generate-x86_64", ".aws-isc-overrides", ".tags-x86_64_v4" ]
 
-aws-isc-build:
+.aws-isc-build:
   extends: [ ".aws-isc", ".build" ]
   trigger:
     include:
@@ -631,10 +631,10 @@ aws-isc-build:
   variables:
     SPACK_CI_STACK_NAME: aws-isc-aarch64
 
-aws-isc-aarch64-generate:
+.aws-isc-aarch64-generate:
   extends: [ ".aws-isc-aarch64", ".generate-aarch64", ".aws-isc-overrides" ]
 
-aws-isc-aarch64-build:
+.aws-isc-aarch64-build:
   extends: [ ".aws-isc-aarch64", ".build" ]
   trigger:
     include:
@@ -654,11 +654,11 @@ aws-isc-aarch64-build:
   variables:
     SPACK_CI_STACK_NAME: tutorial
 
-tutorial-generate:
+.tutorial-generate:
   extends: [ ".tutorial", ".generate-x86_64"]
   image: ghcr.io/spack/tutorial-ubuntu-22.04:v2023-10-30
 
-tutorial-build:
+.tutorial-build:
   extends: [ ".tutorial", ".build" ]
   trigger:
     include:
@@ -677,11 +677,11 @@ tutorial-build:
   variables:
     SPACK_CI_STACK_NAME: ml-linux-x86_64-cpu
 
-ml-linux-x86_64-cpu-generate:
+.ml-linux-x86_64-cpu-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-cpu, ".tags-x86_64_v4" ]
   image: ghcr.io/spack/linux-ubuntu22.04-x86_64_v2:v2023-07-01
 
-ml-linux-x86_64-cpu-build:
+.ml-linux-x86_64-cpu-build:
   extends: [ ".build", ".ml-linux-x86_64-cpu" ]
   trigger:
     include:
@@ -700,11 +700,11 @@ ml-linux-x86_64-cpu-build:
   variables:
     SPACK_CI_STACK_NAME: ml-linux-x86_64-cuda
 
-ml-linux-x86_64-cuda-generate:
+.ml-linux-x86_64-cuda-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-cuda, ".tags-x86_64_v4" ]
   image: ghcr.io/spack/linux-ubuntu22.04-x86_64_v2:v2023-07-01
 
-ml-linux-x86_64-cuda-build:
+.ml-linux-x86_64-cuda-build:
   extends: [ ".build", ".ml-linux-x86_64-cuda"  ]
   trigger:
     include:
@@ -723,11 +723,11 @@ ml-linux-x86_64-cuda-build:
   variables:
     SPACK_CI_STACK_NAME: ml-linux-x86_64-rocm
 
-ml-linux-x86_64-rocm-generate:
+.ml-linux-x86_64-rocm-generate:
   extends: [ ".generate-x86_64", .ml-linux-x86_64-rocm, ".tags-x86_64_v4" ]
   image: ghcr.io/spack/linux-ubuntu22.04-x86_64_v2:v2023-07-01
 
-ml-linux-x86_64-rocm-build:
+.ml-linux-x86_64-rocm-build:
   extends: [ ".build", ".ml-linux-x86_64-rocm" ]
   trigger:
     include:
@@ -746,11 +746,11 @@ ml-linux-x86_64-rocm-build:
   variables:
     SPACK_CI_STACK_NAME: ml-darwin-aarch64-mps
 
-ml-darwin-aarch64-mps-generate:
+.ml-darwin-aarch64-mps-generate:
   tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
   extends: [ ".ml-darwin-aarch64-mps", ".generate-base"]
 
-ml-darwin-aarch64-mps-build:
+.ml-darwin-aarch64-mps-build:
   extends: [ ".ml-darwin-aarch64-mps", ".build" ]
   trigger:
     include:
@@ -768,10 +768,10 @@ ml-darwin-aarch64-mps-build:
   variables:
     SPACK_CI_STACK_NAME: deprecated
 
-deprecated-ci-generate:
+.deprecated-ci-generate:
   extends: [ ".generate-deprecated", ".deprecated-ci" ]
 
-deprecated-ci-build:
+.deprecated-ci-build:
   extends: [ ".build", ".deprecated-ci" ]
   trigger:
     include:
@@ -907,10 +907,10 @@ deprecated-ci-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-rhel
 
-e4s-cray-rhel-generate:
+.e4s-cray-rhel-generate:
   extends: [ ".generate-cray-rhel", ".e4s-cray-rhel" ]
 
-e4s-cray-rhel-build:
+.e4s-cray-rhel-build:
   extends: [ ".build", ".e4s-cray-rhel" ]
   trigger:
     include:
@@ -929,10 +929,10 @@ e4s-cray-rhel-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-sles
 
-e4s-cray-sles-generate:
+.e4s-cray-sles-generate:
   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
-e4s-cray-sles-build:
+.e4s-cray-sles-build:
   extends: [ ".build", ".e4s-cray-sles" ]
   trigger:
     include:
