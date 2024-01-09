@@ -112,7 +112,7 @@ SPACK_DEBUG = "SPACK_DEBUG"
 SPACK_SHORT_SPEC = "SPACK_SHORT_SPEC"
 SPACK_DEBUG_LOG_ID = "SPACK_DEBUG_LOG_ID"
 SPACK_DEBUG_LOG_DIR = "SPACK_DEBUG_LOG_DIR"
-SPACK_CCACHE_BINARY = "SPACK_CCACHE_BINARY"
+SPACK_COMPILER_LAUNCHER_F = "SPACK_{0}_COMPILER_LAUNCHER"
 SPACK_SYSTEM_DIRS = "SPACK_SYSTEM_DIRS"
 
 # Platform-specific library suffix.
@@ -470,11 +470,17 @@ def set_wrapper_variables(pkg, env):
     env.set(SPACK_DEBUG_LOG_DIR, spack.main.spack_working_dir)
 
     # Find ccache binary and hand it to build environment
-    if spack.config.get("config:ccache"):
-        ccache = Executable("ccache")
-        if not ccache:
-            raise RuntimeError("No ccache binary found in PATH")
-        env.set(SPACK_CCACHE_BINARY, ccache)
+    if spack.config.get("config:compiler_launcher"):
+        launchers = spack.config.get("config:compiler_launcher")
+        for lang in launchers:
+            launcher = Executable(launchers[lang])
+            if not launcher:
+                raise RuntimeError(f"No {launchers['lang']} binary found in PATH")
+
+            if lang == "rustc":
+                env.set("RUSTC_WRAPPER", launchers["rustc"])
+            else:
+                env.set(SPACK_COMPILER_LAUNCHER_F.format(lang.upper()), launchers[lang])
 
     # Gather information about various types of dependencies
     link_deps = set(pkg.spec.traverse(root=False, deptype=("link")))
