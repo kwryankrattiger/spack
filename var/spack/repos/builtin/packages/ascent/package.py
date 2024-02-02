@@ -225,7 +225,7 @@ class Ascent(CMakePackage, CudaPackage):
         depends_on("vtk-m+fpic", when="@0.8.0:")
         depends_on("vtk-m~shared+fpic", when="@0.8.0: ~shared")
         # Ascent defaults to C++11, some GPU features require 14
-        depends_on("kokkos cxxstd=14", when="+^vtk-m +kokkos")
+        depends_on("kokkos cxxstd=14", when="^vtk-m +kokkos")
         depends_on("kokkos@3.7.02", when="@0.9.3: ^vtk-m +kokkos")
 
         #######################
