@@ -186,8 +186,8 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
         when="+vtkm",
         propagate=["cuda", "rocm"] + cuda_arch_variants + amdgpu_target_variants,
     )
-    depends_on("vtk-m+openmp", when="~rocm+vtkm")
-    depends_on("vtk-m~openmp", when="+rocm+vtkm")
+    # depends_on("vtk-m+openmp", when="~rocm+vtkm")
+    # depends_on("vtk-m~openmp", when="+rocm+vtkm")
 
     # +python is currently broken in sz
     # dav_sdk_depends_on('sz+shared+python+random_access',

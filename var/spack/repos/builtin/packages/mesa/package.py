@@ -86,7 +86,7 @@ class Mesa(MesonPackage):
 
     # TODO: effectively deal with EGL.  The implications of this have not been
     # worked through yet
-    # variant('egl', default=False, description="Enable the EGL frontend.")
+    variant('egl', default=False, description="Enable the EGL frontend.")
 
     # TODO: Effectively deal with hardware drivers
     # The implication of this is enabling DRI, among other things, and
@@ -99,7 +99,7 @@ class Mesa(MesonPackage):
     # Provides
     provides("libglx", when="+glx")
 
-    # provides('egl@1.5', when='+egl')
+    provides('libegl@1.5', when='+egl')
     provides("libosmesa", when="+osmesa")
 
     # Variant dependencies
@@ -121,7 +121,7 @@ class Mesa(MesonPackage):
 
     # Require at least 1 front-end
     # TODO: Add egl to this conflict once made available
-    conflicts("~osmesa ~glx")
+    conflicts("~osmesa ~glx ~egl")
 
     # Require at least 1 back-end
     # TODO: Add vulkan to this conflict once made available
@@ -165,6 +165,14 @@ class Mesa(MesonPackage):
 
     @property
     def libglx_libs(self):
+        return find_libraries("libGL", root=self.spec.prefix, recursive=True)
+
+    @property
+    def libgl_headers(self):
+        return find_headers("GL/gl", root=self.spec.prefix.include, recursive=False)
+
+    @property
+    def libgl_libs(self):
         return find_libraries("libGL", root=self.spec.prefix, recursive=True)
 
     @property
@@ -236,7 +244,7 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         if "+egl" in spec:
             num_frontends += 1
             args.extend(["-Degl=enabled", "-Dgbm=enabled", "-Ddri3=enabled"])
-            args_platforms.append("surfaceless")
+            args_platforms.append("x11")
         else:
             args.extend(["-Degl=disabled", "-Dgbm=disabled", "-Ddri3=disabled"])
 
